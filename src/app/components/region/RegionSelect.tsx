@@ -1,7 +1,20 @@
 "use client";
 
 import React from "react";
-import { RAYON_DATA } from "./RegionModal";
+import { RAYON_DATA } from "./rayonData";
+
+// Metro / Nişangah / MTK listlərini modal ilə eyni saxlayırıq
+const METRO_LIST = [
+    "28 May", "Gənclik", "Nərimanov", "Nizami", "İnşaatçılar", "Elmlər Akademiyası"
+];
+
+const NISANGAH_LIST = [
+    "Gənclik Mall", "Tibb Universiteti", "ASAN Xidmət 1", "DOST Mərkəzi"
+];
+
+const MTK_LIST = [
+    "Kristal Abşeron", "Pilot Layihəsi", "Yüksəliş MTK", "Mənzil Tikinti Kooperativi"
+];
 
 interface Props {
     selectedRegion: string;
@@ -20,25 +33,31 @@ export default function RegionSelect({
                                          selectedRegion,
                                          setSelectedRegion,
                                          selectedItems,
-                                         setSelectedItems,
-                                         tempItems,
-                                         setTempItems,
                                          openModal,
                                      }: Props) {
 
-    const getVisibleChips = () => {
+    // ----------------------------
+    // RAYON-QƏSƏBƏ görünmə CHİPS
+    // ----------------------------
+    const getRayonChips = () => {
         const result: string[] = [];
 
         Object.keys(RAYON_DATA).forEach((rayon) => {
-            const q = RAYON_DATA[rayon];
-            const allSelected = q.every(x => selectedItems.includes(x));
-            const rayonSelected = selectedItems.includes(rayon);
+            const villages = RAYON_DATA[rayon];
 
-            if (rayonSelected && allSelected) {
-                result.push(rayon);
+            const rayonSelected = selectedItems.includes(rayon);
+            const allVillagesSelected =
+                villages.length > 0 &&
+                villages.every((v) => selectedItems.includes(v));
+
+            // Boş rayon → yalnız seçiləndə çixsin
+            if (villages.length === 0 && !rayonSelected) return;
+
+            if (rayonSelected || allVillagesSelected) {
+                result.push(`${rayon} (${villages.length})`);
             } else {
-                q.forEach(qs => {
-                    if (selectedItems.includes(qs)) result.push(qs);
+                villages.forEach((v) => {
+                    if (selectedItems.includes(v)) result.push(v);
                 });
             }
         });
@@ -46,8 +65,18 @@ export default function RegionSelect({
         return result;
     };
 
-    const chips = getVisibleChips();
+    // ----------------------------
+    // METRO / NİŞANGAH / MTK chip
+    // ----------------------------
+    const getSimpleChips = () =>
+        selectedItems.filter(
+            (x) =>
+                METRO_LIST.includes(x) ||
+                NISANGAH_LIST.includes(x) ||
+                MTK_LIST.includes(x)
+        );
 
+    const chips = [...getRayonChips(), ...getSimpleChips()];
 
     return (
         <div className="space-y-2">
@@ -66,6 +95,7 @@ export default function RegionSelect({
                 <option>Gəncə</option>
             </select>
 
+            {/* MODAL AÇAN DÜYMƏ */}
             {selectedRegion === "Bakı" && (
                 <button
                     onClick={openModal}
@@ -75,30 +105,15 @@ export default function RegionSelect({
                 </button>
             )}
 
+            {/* CHIP-LƏR */}
             {chips.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-2">
                     {chips.map((item) => (
                         <span
                             key={item}
-                            className="bg-yellow-300 px-2 py-1 rounded text-xs flex items-center gap-1 border border-yellow-500"
+                            className="bg-yellow-300 px-2 py-1 rounded text-xs border border-yellow-500"
                         >
-                            {item}
-                            <button
-                                className="text-red-700 font-bold"
-                                onClick={() => {
-                                    let newList = selectedItems.filter(i => i !== item);
-
-                                    if (RAYON_DATA[item]) {
-                                        const all = RAYON_DATA[item];
-                                        newList = newList.filter(i => !all.includes(i));
-                                    }
-
-                                    setSelectedItems(newList);
-                                    setTempItems(newList);
-                                }}
-                            >
-                                ✕
-                            </button>
+                               {item}
                         </span>
                     ))}
                 </div>

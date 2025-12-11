@@ -9,176 +9,111 @@ import GarageFilters from "./GarageFilters";
 import LandFilters from "./LandFilters";
 import ObjectFilters from "./ObjectFilters";
 import ResortFilters from "./ResortFilters";
+
 import RegionModal from "../region/RegionModal";
+import RegionSelect from "../region/RegionSelect";
+
+import { buildSearchQuery } from "./buildQuery";
+import type { FloorPosition } from "./buildQuery";
+import { useRouter } from "next/navigation";
 
 export default function FilterContainer() {
+    const router = useRouter();
 
-
-    const [type, setType] = useState("Yeni tikili");
+    // SATIŞ / İCARƏ
     const [mode, setMode] = useState<"satish" | "icare">("satish");
 
+    // TİKİLİ TÜRÜ
+    const [type, setType] = useState("Yeni tikili");
+
+    // OTAQ SAYI
     const [rooms, setRooms] = useState<string[]>([]);
+
+    // İCARƏ TÜRÜ
     const [rentTypes, setRentTypes] = useState<string[]>([]);
 
-    const [floorPosition, setFloorPosition] = useState({
+    // MƏRTƏBƏ PARAMETRLƏRİ
+    const [floorPosition, setFloorPosition] = useState<FloorPosition>({
         firstNot: false,
         topNot: false,
         onlyTop: false
     });
 
+    // ----------------------------
+    // REGION FILTER STRUCTURE
+    // ----------------------------
+
+    // Şəhər seçimi
     const [selectedRegion, setSelectedRegion] = useState("Bakı");
+
+    // Bütün seçimlər (rayon + qəsəbə + metro + nişangah + MTK)
     const [selectedRegionItems, setSelectedRegionItems] = useState<string[]>([]);
 
-    // Modal üçün müvəqqəti seçimlər
+    // Modal üçün müvəqqəti data
     const [tempSelectedItems, setTempSelectedItems] = useState<string[]>([]);
+
     const [isRegionModalOpen, setIsRegionModalOpen] = useState(false);
 
-    const resultCount = 245; // Mock nəticə
-
-    // Modal açılır → filterdəki seçilmişlər temp'ə köçürülür
+    // ----------------------------
+    // REGION MODAL AÇ
+    // ----------------------------
     const openRegionModal = () => {
-        // Əgər temp boşdursa, ilk dəfə açılır → filterdən doldur
-        if (tempSelectedItems.length === 0) {
-            setTempSelectedItems([...selectedRegionItems]);
-        }
-
+        setTempSelectedItems([...selectedRegionItems]);
         setIsRegionModalOpen(true);
     };
 
-    // Modalda "Axtarışa əlavə et"
-
-    const RAYON_DATA: Record<string, string[]> = {
-        "Abşeron r.": [
-            "Atyalı",
-            "Ceyranbatan",
-            "Çiçək",
-            "Digah",
-            "Fatmayı",
-            "Görədil",
-            "Güzdək",
-            "Hökməli",
-            "Masazır",
-            "Mehdiabad",
-            "Məhəmmədli",
-            "Novxanı",
-            "Nübar",
-            "Perekəşkül",
-            "Qobu",
-            "Saray",
-            "Zağulba",
-        ],
-
-        "Binəqədi r.": [
-            "28 may",
-            "6 mkr",
-            "7 mkr",
-            "8 mkr",
-            "9 mkr",
-            "Alatava 2",
-            "Biləcəri",
-            "Binəqədi",
-            "Çermet",
-            "Rəsulzadə",
-            "Sulutəpə",
-            "Xocəsən",
-            "Xutor",
-        ],
-
-        "Nəsimi r.": ["1 mkr", "2 mkr", "3 mkr", "4 mkr", "5 mkr", "Kimya şəhərciyi", "Papanin"],
-
-        "Nizami r.": ["8 km", "Keşlə"],
-
-        "Pirallahı": [],
-
-        "Qaradağ r.": [
-            "Ələt",
-            "Lökbatan",
-            "Müşfiqabad",
-            "Puta",
-            "Qızıldaş",
-            "Qobustan",
-            "Sahil",
-            "Səngəçal",
-            "Şubanı",
-            "Ümid",
-        ],
-
-        "Sabunçu r.": [
-            "Albalı",
-            "Bakıxanov",
-            "Balaxanı",
-            "Bilgəh",
-            "Kürdəxanı",
-            "Ləhic Bağları",
-            "Maştağa",
-            "Nardaran",
-            "Pirşağı",
-            "Ramana",
-            "Sabunçu",
-            "Savalan",
-            "Şuşa",
-            "Yeni Ramana",
-            "Zabrat 1",
-            "Zabrat 2",
-        ],
-
-        "Səbail r.": ["20-ci sahə", "Badamdar", "Bayıl", "Bibiheybət", "Şıxov"],
-
-        "Suraxanı r.": [
-            "Bahar",
-            "Bülbülə",
-            "Dədə Qorqud",
-            "Əmircan",
-            "Hövsan",
-            "Qaraçuxur",
-            "Yeni Günəşli",
-            "Yeni Suraxanı",
-            "Zığ",
-        ],
-
-        "Xətai r.": ["Ağ şəhər", "Əhmədli", "Həzi Aslanov", "Köhnə Günəşli", "NZS", "Qara şəhər"],
-
-        "Xəzər r.": [
-            "Binə",
-            "Buzovna",
-            "Dübəndi bağları",
-            "Mərdəkan",
-            "Qala",
-            "Şağan",
-            "Şüvəlan",
-            "Türkan",
-            "Xaşaxuna",
-            "Zirə",
-        ],
-
-        "Yasamal r.": ["6-cı parallel", "Alatava 1", "Yeni Yasamal"],
-    };
-    const saveRegionChanges = (visibleChips: string[]) => {
-        setSelectedRegionItems(visibleChips);
-        setTempSelectedItems(tempSelectedItems); // daxili vəziyyət qorunur
+    // ----------------------------
+    // MODAL → YEKUN SEÇİMLƏRİN SAXLANMASI
+    // ----------------------------
+    const saveRegionChanges = (rawSelected: string[]) => {
+        setSelectedRegionItems(rawSelected); // əsas filter state
+        setTempSelectedItems(rawSelected);   // modal açılanda eyni olsun
         setIsRegionModalOpen(false);
     };
 
-
-
-    // Filterləri sıfırla
+    // ----------------------------
+    // RESET BÜTÜN FİLTERLƏR
+    // ----------------------------
     const resetFilters = () => {
         setType("Yeni tikili");
         setMode("satish");
         setRooms([]);
         setRentTypes([]);
+
         setFloorPosition({
             firstNot: false,
             topNot: false,
             onlyTop: false
         });
+
         setSelectedRegion("Bakı");
         setSelectedRegionItems([]);
         setTempSelectedItems([]);
-        setIsRegionModalOpen(false); // <-- DÜZGÜN OLAN BUDUR
+        setIsRegionModalOpen(false);
     };
 
-    // Şərtlər
+    const resultCount = 245;
+
+    // ----------------------------
+    // NƏTİCƏLƏRİ GÖSTƏR
+    // ----------------------------
+    const handleShowResults = () => {
+        const query = buildSearchQuery({
+            mode,
+            type,
+            rooms,
+            rentTypes,
+            floorPosition,
+            selectedRegion,
+            selectedRegionItems,
+        });
+
+        router.push(`/elanlar?${query}`);
+    };
+
+    // ----------------------------
+    // HANSİ FİLTER BLoku göstərilsin?
+    // ----------------------------
     const isNewOrOld = type === "Yeni tikili" || type === "Köhnə tikili";
     const isLandHouse = ["Həyət evi", "Villa", "Bağ evi"].includes(type);
     const isOffice = type === "Ofis";
@@ -214,10 +149,10 @@ export default function FilterContainer() {
                 </button>
             </div>
 
-            {/* Tikilinin növü */}
+            {/* TİKİLİ NÖVÜ */}
             <TypeSelect value={type} onChange={setType} />
 
-            {/* Filter blokları */}
+            {/* FİLTER BLOKLARI */}
             {isNewOrOld && (
                 <NewOldFilters
                     mode={mode}
@@ -323,7 +258,7 @@ export default function FilterContainer() {
                 />
             )}
 
-            {/* MODAL */}
+            {/* REGION MODAL */}
             <RegionModal
                 isOpen={isRegionModalOpen}
                 onClose={() => setIsRegionModalOpen(false)}
@@ -341,7 +276,10 @@ export default function FilterContainer() {
                     Seçimləri sıfırla
                 </button>
 
-                <button className="px-6 py-2 bg-blue-600 text-white rounded-md text-sm font-semibold">
+                <button
+                    onClick={handleShowResults}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-md text-sm font-semibold"
+                >
                     Göstər ({resultCount})
                 </button>
             </div>
