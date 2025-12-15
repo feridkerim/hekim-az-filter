@@ -2,6 +2,9 @@
 
 import React from "react";
 import RegionSelect from "../region/RegionSelect";
+import {NumberRangeField} from "./common/NumberRangeField";
+import {ToggleButtonGroup} from "./common/ToggleButtonGroup";
+import type {FloorPosition} from "./buildQuery";
 
 interface Props {
     mode: "satish" | "icare";
@@ -12,12 +15,8 @@ interface Props {
     rentTypes: string[];
     setRentTypes: (v: string[]) => void;
 
-    floorPosition: {
-        firstNot: boolean;
-        topNot: boolean;
-        onlyTop: boolean;
-    };
-    setFloorPosition: (v: any) => void;
+    floorPosition: FloorPosition;
+    setFloorPosition: (v: FloorPosition) => void;
 
     selectedRegion: string;
     setSelectedRegion: (v: string) => void;
@@ -31,15 +30,7 @@ interface Props {
     openModal: () => void;
 }
 
-const roomOptions = ["1", "2", "3", "4", "5+"];
-
-const toggle = (value: string, array: string[], setter: (v: string[]) => void) => {
-    if (array.includes(value)) {
-        setter(array.filter((i) => i !== value));
-    } else {
-        setter([...array, value]);
-    }
-};
+const ROOM_OPTIONS = ["1", "2", "3", "4", "5+"];
 
 export default function LandHouseFilters({
                                              mode,
@@ -53,81 +44,50 @@ export default function LandHouseFilters({
                                              setSelectedRegionItems,
                                              tempSelectedItems,
                                              setTempSelectedItems,
-                                             openModal
+                                             openModal,
                                          }: Props) {
     return (
-        <div className="grid grid-cols-2 gap-6 mt-6">
+        <div className="grid grid-cols-3 gap-6 mt-6">
             {/* SOL BLOK */}
             <div className="space-y-5">
-
                 {/* Otaq sayı */}
-                <div>
-                    <label className="text-[12px] text-gray-600 font-semibold">Otaq sayı</label>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                        {roomOptions.map((r) => (
-                            <button
-                                key={r}
-                                onClick={() => toggle(r, rooms, setRooms)}
-                                className={`px-4 py-2 border rounded-md text-sm ${
-                                    rooms.includes(r)
-                                        ? "bg-yellow-400 text-white"
-                                        : "bg-gray-100 text-gray-800"
-                                }`}
-                            >
-                                {r}
-                            </button>
-                        ))}
-                    </div>
-                </div>
+                <ToggleButtonGroup
+                    label="Otaq sayı"
+                    options={ROOM_OPTIONS}
+                    value={rooms}
+                    onChange={setRooms}
+                />
 
                 {/* Qiymət */}
-                <div>
-                    <label className="text-[12px] text-gray-600 font-semibold">Qiymət (AZN)</label>
-                    <div className="flex gap-2 mt-1">
-                        <input className="border p-2 rounded-md w-28" placeholder="min" />
-                        <input className="border p-2 rounded-md w-28" placeholder="max" />
-                    </div>
-                </div>
+                <NumberRangeField label="Qiymət (AZN)"/>
 
                 {/* Sahə */}
-                <div>
-                    <label className="text-[12px] text-gray-600 font-semibold">Sahə (KVM)</label>
-                    <div className="flex gap-2 mt-1">
-                        <input className="border p-2 rounded-md w-28" placeholder="min" />
-                        <input className="border p-2 rounded-md w-28" placeholder="max" />
-                    </div>
-                </div>
+                <NumberRangeField label="Sahə (KVM)"/>
 
-                {/* Torpaq sahəsi */}
-                <div>
-                    <label className="text-[12px] text-gray-600 font-semibold">
-                        Torpağın sahəsi (sot)
-                    </label>
-                    <div className="flex gap-2 mt-1">
-                        <input className="border p-2 rounded-md w-20" placeholder="min" />
-                        <input className="border p-2 rounded-md w-20" placeholder="max" />
-                    </div>
-                </div>
-
-                {/* Kreditlə satış yalnız satış modunda */}
-                {mode === "satish" && (
-                    <div>
-                        <label className="text-[12px] text-gray-600 font-semibold">Kreditlə satış</label>
-                        <div className="flex gap-2 mt-1">
-                            <input className="border p-2 rounded-md w-28" placeholder="İlkin ödəniş" />
-                            <input className="border p-2 rounded-md w-28" placeholder="Aylıq ödəniş" />
-                        </div>
-                    </div>
-                )}
 
             </div>
 
             {/* SAĞ BLOK */}
             <div className="space-y-5">
-
+                {/* Torpağın sahəsi */}
+                <NumberRangeField
+                    label="Torpağın sahəsi (sot)"
+                    minWidth={96}
+                    maxWidth={96}
+                />
+                {/* Kreditlə satış yalnız satış modunda */}
+                {mode === "satish" && (
+                    <NumberRangeField
+                        label="Kreditlə satış"
+                        minPlaceholder="İlkin ödəniş"
+                        maxPlaceholder="Aylıq ödəniş"
+                    />
+                )}
                 {/* Təmir səviyyəsi */}
                 <div>
-                    <label className="text-[12px] text-gray-600 font-semibold">Təmir səviyyəsi</label>
+                    <label className="text-[12px] text-gray-600 font-semibold">
+                        Təmir səviyyəsi
+                    </label>
                     <select className="border p-2 rounded-md w-full text-sm">
                         <option>Təmirli</option>
                         <option>Təmirsiz</option>
@@ -137,25 +97,26 @@ export default function LandHouseFilters({
                 {/* Çıxarış / İpoteka */}
                 <div className="flex gap-6 mt-2 text-sm">
                     <label className="flex items-center gap-2">
-                        <input type="checkbox" /> Çıxarış var
+                        <input type="checkbox"/>
+                        Çıxarış var
                     </label>
 
                     <label className="flex items-center gap-2">
-                        <input type="checkbox" /> İpoteka var
+                        <input type="checkbox"/>
+                        İpoteka var
                     </label>
                 </div>
 
                 {/* Azərbaycan rayonları */}
-                <RegionSelect
-                    selectedRegion={selectedRegion}
-                    setSelectedRegion={setSelectedRegion}
-                    selectedItems={selectedRegionItems}
-                    setSelectedItems={setSelectedRegionItems}
-                    tempItems={tempSelectedItems}
-                    setTempItems={setTempSelectedItems}
-                    openModal={openModal}
-                />
+
             </div>
+            <RegionSelect
+                selectedRegion={selectedRegion}
+                setSelectedRegion={setSelectedRegion}
+                selectedItems={selectedRegionItems}
+                setSelectedItems={setSelectedRegionItems}
+                openModal={openModal}
+            />
         </div>
     );
 }

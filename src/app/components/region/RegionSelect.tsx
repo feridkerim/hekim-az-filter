@@ -1,19 +1,34 @@
 "use client";
 
-import React from "react";
-import { RAYON_DATA } from "./rayonData";
+import React, {useMemo} from "react";
+import {RAYON_DATA} from "./rayonData";
+import Autocomplete from "@mui/material/Autocomplete";
+import TextField from "@mui/material/TextField";
+import Button from '@mui/material/Button';
 
-// Metro / Nişangah / MTK listlərini modal ilə eyni saxlayırıq
+const REGION_OPTIONS = ["Bakı", "Sumqayıt", "Abşeron", "Gəncə"];
+
 const METRO_LIST = [
-    "28 May", "Gənclik", "Nərimanov", "Nizami", "İnşaatçılar", "Elmlər Akademiyası"
+    "28 May",
+    "Gənclik",
+    "Nərimanov",
+    "Nizami",
+    "İnşaatçılar",
+    "Elmlər Akademiyası",
 ];
 
 const NISANGAH_LIST = [
-    "Gənclik Mall", "Tibb Universiteti", "ASAN Xidmət 1", "DOST Mərkəzi"
+    "Gənclik Mall",
+    "Tibb Universiteti",
+    "ASAN Xidmət 1",
+    "DOST Mərkəzi",
 ];
 
 const MTK_LIST = [
-    "Kristal Abşeron", "Pilot Layihəsi", "Yüksəliş MTK", "Mənzil Tikinti Kooperativi"
+    "Kristal Abşeron",
+    "Pilot Layihəsi",
+    "Yüksəliş MTK",
+    "Mənzil Tikinti Kooperativi",
 ];
 
 interface Props {
@@ -22,9 +37,6 @@ interface Props {
 
     selectedItems: string[];
     setSelectedItems: (v: string[]) => void;
-
-    tempItems: string[];
-    setTempItems: (v: string[]) => void;
 
     openModal: () => void;
 }
@@ -35,77 +47,100 @@ export default function RegionSelect({
                                          selectedItems,
                                          openModal,
                                      }: Props) {
-
-    // ----------------------------
-    // RAYON-QƏSƏBƏ görünmə CHİPS
-    // ----------------------------
-    const getRayonChips = () => {
+    const rayonChips = useMemo(() => {
         const result: string[] = [];
 
         Object.keys(RAYON_DATA).forEach((rayon) => {
             const villages = RAYON_DATA[rayon];
-
             const rayonSelected = selectedItems.includes(rayon);
             const allVillagesSelected =
                 villages.length > 0 &&
                 villages.every((v) => selectedItems.includes(v));
 
-            // Boş rayon → yalnız seçiləndə çixsin
             if (villages.length === 0 && !rayonSelected) return;
 
             if (rayonSelected || allVillagesSelected) {
                 result.push(`${rayon} (${villages.length})`);
             } else {
                 villages.forEach((v) => {
-                    if (selectedItems.includes(v)) result.push(v);
+                    if (selectedItems.includes(v)) {
+                        result.push(v);
+                    }
                 });
             }
         });
 
         return result;
-    };
+    }, [selectedItems]);
 
-    // ----------------------------
-    // METRO / NİŞANGAH / MTK chip
-    // ----------------------------
-    const getSimpleChips = () =>
-        selectedItems.filter(
-            (x) =>
-                METRO_LIST.includes(x) ||
-                NISANGAH_LIST.includes(x) ||
-                MTK_LIST.includes(x)
-        );
+    const simpleChips = useMemo(
+        () =>
+            selectedItems.filter(
+                (x) =>
+                    METRO_LIST.includes(x) ||
+                    NISANGAH_LIST.includes(x) ||
+                    MTK_LIST.includes(x)
+            ),
+        [selectedItems]
+    );
 
-    const chips = [...getRayonChips(), ...getSimpleChips()];
+    const chips = [...rayonChips, ...simpleChips];
 
     return (
         <div className="space-y-2">
-            <label className="text-[12px] text-gray-600 font-semibold">
-                Azərbaycan rayonları
-            </label>
-
-            <select
-                className="border p-2 rounded-md w-full text-sm"
+            <Autocomplete
+                disablePortal
+                options={REGION_OPTIONS}
                 value={selectedRegion}
-                onChange={(e) => setSelectedRegion(e.target.value)}
-            >
-                <option>Bakı</option>
-                <option>Sumqayıt</option>
-                <option>Abşeron</option>
-                <option>Gəncə</option>
-            </select>
+                onChange={(event, newValue) => {
+                    if (newValue) setSelectedRegion(newValue);
+                }}
+                renderInput={(params) => (
+                    <TextField
+                        {...params}
+                        label="Azərbaycan rayonları"
+                        size="small"
+                    />
+                )}
+                sx={{width: "100%", marginTop: "4px"}}
+            />
 
-            {/* MODAL AÇAN DÜYMƏ */}
             {selectedRegion === "Bakı" && (
-                <button
+                // <button
+                //     type="button"
+                //     onClick={openModal}
+                //     className="mt-2 px-4 py-2 border rounded-md bg-gray-100 text-sm"
+                // >
+                //     Rayon, Qəsəbə, Metro, Nişangah, MTK
+                // </button >
+                <Button
+                    type="button"
+                    fullWidth
                     onClick={openModal}
-                    className="mt-2 px-4 py-2 border rounded-md bg-gray-100 text-sm"
+                    variant="outlined"
+                    size="medium"
+                    sx={{
+                        textTransform: "none",        // CAPS OFF
+                        backgroundColor: "#facc15",   // Custom background (yellow-400)
+                        color: "#fff",                // Text color
+                        fontSize: "14px",             // Optional
+                        fontWeight: 500,
+                        borderColor:"#facc15",
+
+                        "&:hover": {
+                            backgroundColor: "#eab308",
+                            borderColor:"#facc15",// yellow-500
+                        },
+
+                        "&:active": {
+                            backgroundColor: "#ca8a04",   // yellow-600
+                        }
+                    }}
                 >
                     Rayon, Qəsəbə, Metro, Nişangah, MTK
-                </button>
+                </Button>
             )}
 
-            {/* CHIP-LƏR */}
             {chips.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-2">
                     {chips.map((item) => (
@@ -113,8 +148,8 @@ export default function RegionSelect({
                             key={item}
                             className="bg-yellow-300 px-2 py-1 rounded text-xs border border-yellow-500"
                         >
-                               {item}
-                        </span>
+              {item}
+            </span>
                     ))}
                 </div>
             )}

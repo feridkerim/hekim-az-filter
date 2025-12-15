@@ -1,19 +1,29 @@
 "use client";
 
-import React, {useState, useMemo} from "react";
-import {RAYON_DATA} from "./rayonData";
+import React, { useState, useMemo } from "react";
+import { RAYON_DATA } from "./rayonData";
 
-// Bu listləri istədiyin kimi artıra bilərsən
 const METRO_LIST = [
-    "28 May", "Gənclik", "Nərimanov", "Nizami", "İnşaatçılar", "Elmlər Akademiyası"
+    "28 May",
+    "Gənclik",
+    "Nərimanov",
+    "Nizami",
+    "İnşaatçılar",
+    "Elmlər Akademiyası",
 ];
 
 const NISANGAH_LIST = [
-    "Gənclik Mall", "Tibb Universiteti", "ASAN Xidmət 1", "DOST Mərkəzi"
+    "Gənclik Mall",
+    "Tibb Universiteti",
+    "ASAN Xidmət 1",
+    "DOST Mərkəzi",
 ];
 
 const MTK_LIST = [
-    "Kristal Abşeron", "Pilot Layihəsi", "Yüksəliş MTK", "Mənzil Tikinti Kooperativi"
+    "Kristal Abşeron",
+    "Pilot Layihəsi",
+    "Yüksəliş MTK",
+    "Mənzil Tikinti Kooperativi",
 ];
 
 interface Props {
@@ -33,35 +43,25 @@ export default function RegionModal({
                                         setTempSelectedItems,
                                         saveChanges,
                                     }: Props) {
-
-    if (!isOpen) return null;
-
     const [tab, setTab] = useState<"rayon" | "metro" | "nisangah" | "mtk">(
         "rayon"
     );
-
     const [search, setSearch] = useState("");
 
-    // =========================================
-    // 1) RAYON - QƏSƏBƏ məntiqi
-    // =========================================
+    if (!isOpen) return null;
 
+    // Rayon / Qəsəbə toggling
     const toggleRayon = (rayon: string) => {
         const villages = RAYON_DATA[rayon];
         let list = [...tempSelectedItems];
 
         const rayonSelected = list.includes(rayon);
         const allVillagesSelected =
-            villages.length > 0 &&
-            villages.every((v) => list.includes(v));
+            villages.length > 0 && villages.every((v) => list.includes(v));
 
         if (rayonSelected || allVillagesSelected) {
-            // rayon + qəsəbələri çıxar
-            list = list.filter(
-                (i) => i !== rayon && !villages.includes(i)
-            );
+            list = list.filter((i) => i !== rayon && !villages.includes(i));
         } else {
-            // tam rayon seç
             list = list.filter((i) => !villages.includes(i));
             list.push(rayon);
         }
@@ -82,14 +82,14 @@ export default function RegionModal({
             return;
         }
 
-        // ON/OFF
-        if (list.includes(q)) list = list.filter((x) => x !== q);
-        else list.push(q);
+        if (list.includes(q)) {
+            list = list.filter((x) => x !== q);
+        } else {
+            list.push(q);
+        }
 
-        // hamısı seçilibsə → rayona çevir
         const allSelected =
-            villages.length > 0 &&
-            villages.every((v) => list.includes(v));
+            villages.length > 0 && villages.every((v) => list.includes(v));
 
         if (allSelected) {
             list = list.filter((x) => !villages.includes(x));
@@ -99,8 +99,21 @@ export default function RegionModal({
         setTempSelectedItems(list);
     };
 
-    // Rayon + Qəsəbə görünmə qaydası
-    const getRayonVisibleChips = () => {
+    const toggleSimple = (item: string) => {
+        if (tempSelectedItems.includes(item)) {
+            setTempSelectedItems(tempSelectedItems.filter((i) => i !== item));
+        } else {
+            setTempSelectedItems([...tempSelectedItems, item]);
+        }
+    };
+
+    const filterList = (list: string[]) => {
+        if (!search) return list;
+        const needle = search.toLowerCase();
+        return list.filter((x) => x.toLowerCase().includes(needle));
+    };
+
+    const rayonVisibleChips = useMemo(() => {
         const result: string[] = [];
 
         Object.keys(RAYON_DATA).forEach((rayon) => {
@@ -110,7 +123,6 @@ export default function RegionModal({
                 villages.length > 0 &&
                 villages.every((v) => tempSelectedItems.includes(v));
 
-            // boş rayon → seçilməyibsə göstərmə
             if (villages.length === 0 && !rayonSelected) return;
 
             if (rayonSelected || allVillagesSelected) {
@@ -123,51 +135,26 @@ export default function RegionModal({
         });
 
         return result;
-    };
+    }, [tempSelectedItems]);
 
-    // =========================================
-    // 2) SIMPLE MULTI SELECT (metro/nişangah/mtk)
-    // =========================================
+    const chips = useMemo(
+        () => [
+            ...rayonVisibleChips,
+            ...tempSelectedItems.filter(
+                (x) =>
+                    METRO_LIST.includes(x) ||
+                    NISANGAH_LIST.includes(x) ||
+                    MTK_LIST.includes(x)
+            ),
+        ],
+        [rayonVisibleChips, tempSelectedItems]
+    );
 
-    const toggleSimple = (item: string) => {
-        if (tempSelectedItems.includes(item)) {
-            setTempSelectedItems(
-                tempSelectedItems.filter((i) => i !== item)
-            );
-        } else {
-            setTempSelectedItems([...tempSelectedItems, item]);
-        }
-    };
-
-    const filterList = (list: string[]) => {
-        if (!search) return list;
-        return list.filter((x) =>
-            x.toLowerCase().includes(search.toLowerCase())
-        );
-    };
-
-    // =========================================
-    // 3) BÜTÜN CHIP-LƏR
-    // =========================================
-
-    const chips = [
-        ...getRayonVisibleChips(),
-
-        // metro/nişangah/mtk seçilənləri göstər
-        ...tempSelectedItems.filter(
-            (x) =>
-                METRO_LIST.includes(x) ||
-                NISANGAH_LIST.includes(x) ||
-                MTK_LIST.includes(x)
-        ),
-    ];
-
-    // =========================================
     return (
         <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
             <div className="bg-white w-[760px] rounded-md p-6 relative">
-
                 <button
+                    type="button"
                     onClick={onClose}
                     className="absolute right-4 top-3 text-xl font-bold"
                 >
@@ -184,6 +171,7 @@ export default function RegionModal({
                     ].map(([key, label]) => (
                         <button
                             key={key}
+                            type="button"
                             onClick={() => setTab(key as any)}
                             className={`px-4 py-2 text-sm border-r ${
                                 tab === key
@@ -206,22 +194,23 @@ export default function RegionModal({
 
                 {/* CONTENT */}
                 <div className="max-h-[300px] overflow-y-auto space-y-3">
-
                     {tab === "rayon" &&
                         Object.keys(RAYON_DATA).map((rayon) => {
                             const villages = RAYON_DATA[rayon];
 
-                            const matchRayon = rayon.toLowerCase().includes(search.toLowerCase());
+                            const matchRayon = rayon
+                                .toLowerCase()
+                                .includes(search.toLowerCase());
                             const matchVillage = villages.some((q) =>
                                 q.toLowerCase().includes(search.toLowerCase())
                             );
 
-                            // Əgər rayon da, qəsəbələr də axtarışa uyğun gəlmirsə → göstərmə
                             if (search && !matchRayon && !matchVillage) return null;
 
                             return (
                                 <div key={rayon}>
                                     <button
+                                        type="button"
                                         onClick={() => toggleRayon(rayon)}
                                         className={`w-full text-left px-3 py-2 border rounded font-semibold ${
                                             tempSelectedItems.includes(rayon)
@@ -235,13 +224,12 @@ export default function RegionModal({
                                     <div className="ml-4 mt-2 space-y-1">
                                         {villages
                                             .filter((q) =>
-                                                q
-                                                    .toLowerCase()
-                                                    .includes(search.toLowerCase())
+                                                q.toLowerCase().includes(search.toLowerCase())
                                             )
                                             .map((q) => (
                                                 <button
                                                     key={q}
+                                                    type="button"
                                                     onClick={() => toggleQesebe(rayon, q)}
                                                     className={`w-full text-left px-3 py-1 border rounded text-sm ${
                                                         tempSelectedItems.includes(q) ||
@@ -258,11 +246,11 @@ export default function RegionModal({
                             );
                         })}
 
-
                     {tab === "metro" &&
                         filterList(METRO_LIST).map((m) => (
                             <button
                                 key={m}
+                                type="button"
                                 onClick={() => toggleSimple(m)}
                                 className={`w-full text-left px-3 py-2 border rounded ${
                                     tempSelectedItems.includes(m)
@@ -278,6 +266,7 @@ export default function RegionModal({
                         filterList(NISANGAH_LIST).map((n) => (
                             <button
                                 key={n}
+                                type="button"
                                 onClick={() => toggleSimple(n)}
                                 className={`w-full text-left px-3 py-2 border rounded ${
                                     tempSelectedItems.includes(n)
@@ -293,6 +282,7 @@ export default function RegionModal({
                         filterList(MTK_LIST).map((m) => (
                             <button
                                 key={m}
+                                type="button"
                                 onClick={() => toggleSimple(m)}
                                 className={`w-full text-left px-3 py-2 border rounded ${
                                     tempSelectedItems.includes(m)
@@ -312,14 +302,15 @@ export default function RegionModal({
                             key={chip}
                             className="px-3 py-1 bg-gray-200 rounded-full text-sm"
                         >
-                            {chip}
-                        </span>
+              {chip}
+            </span>
                     ))}
                 </div>
 
                 {/* FOOTER */}
                 <div className="flex justify-between mt-4 border-t pt-4">
                     <button
+                        type="button"
                         onClick={() => setTempSelectedItems([])}
                         className="px-4 py-2 border rounded-md"
                     >
@@ -327,6 +318,7 @@ export default function RegionModal({
                     </button>
 
                     <button
+                        type="button"
                         onClick={() => saveChanges(tempSelectedItems)}
                         className="px-6 py-2 bg-blue-600 text-white rounded-md"
                     >

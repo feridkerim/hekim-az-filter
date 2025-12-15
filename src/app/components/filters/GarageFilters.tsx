@@ -2,6 +2,7 @@
 
 import React from "react";
 import RegionSelect from "../region/RegionSelect";
+import { NumberRangeField } from "./common/NumberRangeField";
 
 interface Props {
     mode: "satish" | "icare";
@@ -26,47 +27,25 @@ export default function GarageFilters({
                                           setSelectedRegionItems,
                                           tempSelectedItems,
                                           setTempSelectedItems,
-                                          openModal
+                                          openModal,
                                       }: Props) {
-
     return (
         <div className="grid grid-cols-2 gap-6 mt-6">
             {/* SOL BLOK */}
             <div className="space-y-5">
-
                 {/* Qiymət */}
-                <div>
-                    <label className="text-[12px] text-gray-600 font-semibold">
-                        Qiymət (AZN)
-                    </label>
-                    <div className="flex gap-2 mt-1">
-                        <input className="border p-2 rounded-md w-28" placeholder="min" />
-                        <input className="border p-2 rounded-md w-28" placeholder="max" />
-                    </div>
-                </div>
+                <NumberRangeField label="Qiymət (AZN)" />
 
                 {/* Sahə */}
-                <div>
-                    <label className="text-[12px] text-gray-600 font-semibold">
-                        Sahə (KVM)
-                    </label>
-                    <div className="flex gap-2 mt-1">
-                        <input className="border p-2 rounded-md w-28" placeholder="min" />
-                        <input className="border p-2 rounded-md w-28" placeholder="max" />
-                    </div>
-                </div>
+                <NumberRangeField label="Sahə (KVM)" />
 
                 {/* Kredit yalnız satışda */}
                 {mode === "satish" && (
-                    <div>
-                        <label className="text-[12px] text-gray-600 font-semibold">
-                            Kreditlə satış
-                        </label>
-                        <div className="flex gap-2 mt-1">
-                            <input className="border p-2 rounded-md w-28" placeholder="İlkin" />
-                            <input className="border p-2 rounded-md w-28" placeholder="Aylıq" />
-                        </div>
-                    </div>
+                    <NumberRangeField
+                        label="Kreditlə satış"
+                        minPlaceholder="İlkin"
+                        maxPlaceholder="Aylıq"
+                    />
                 )}
             </div>
 
@@ -91,8 +70,6 @@ export default function GarageFilters({
                     setSelectedRegion={setSelectedRegion}
                     selectedItems={selectedRegionItems}
                     setSelectedItems={setSelectedRegionItems}
-                    tempItems={tempSelectedItems}
-                    setTempItems={setTempSelectedItems}
                     openModal={openModal}
                 />
             </div>

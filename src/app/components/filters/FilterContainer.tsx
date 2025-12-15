@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+
 import TypeSelect from "./TypeSelect";
 import NewOldFilters from "./NewOldFilters";
 import LandHouseFilters from "./LandHouseFilters";
@@ -11,92 +13,71 @@ import ObjectFilters from "./ObjectFilters";
 import ResortFilters from "./ResortFilters";
 
 import RegionModal from "../region/RegionModal";
-import RegionSelect from "../region/RegionSelect";
-
 import { buildSearchQuery } from "./buildQuery";
 import type { FloorPosition } from "./buildQuery";
-import { useRouter } from "next/navigation";
+
+type Mode = "satish" | "icare";
+
+const DEFAULT_MODE: Mode = "satish";
+const DEFAULT_TYPE = "Yeni tikili";
 
 export default function FilterContainer() {
     const router = useRouter();
 
     // SATIŞ / İCARƏ
-    const [mode, setMode] = useState<"satish" | "icare">("satish");
+    const [mode, setMode] = useState<Mode>(DEFAULT_MODE);
 
     // TİKİLİ TÜRÜ
-    const [type, setType] = useState("Yeni tikili");
+    const [type, setType] = useState<string>(DEFAULT_TYPE);
 
     // OTAQ SAYI
     const [rooms, setRooms] = useState<string[]>([]);
 
-    // İCARƏ TÜRÜ
+    // İCARƏ TÜRÜ (Aylıq / Günlük və s.)
     const [rentTypes, setRentTypes] = useState<string[]>([]);
 
     // MƏRTƏBƏ PARAMETRLƏRİ
     const [floorPosition, setFloorPosition] = useState<FloorPosition>({
         firstNot: false,
         topNot: false,
-        onlyTop: false
+        onlyTop: false,
     });
 
-    // ----------------------------
-    // REGION FILTER STRUCTURE
-    // ----------------------------
-
-    // Şəhər seçimi
-    const [selectedRegion, setSelectedRegion] = useState("Bakı");
-
-    // Bütün seçimlər (rayon + qəsəbə + metro + nişangah + MTK)
+    // REGION / ŞƏHƏR SEÇİMİ
+    const [selectedRegion, setSelectedRegion] = useState<string>("Bakı");
     const [selectedRegionItems, setSelectedRegionItems] = useState<string[]>([]);
-
-    // Modal üçün müvəqqəti data
     const [tempSelectedItems, setTempSelectedItems] = useState<string[]>([]);
-
     const [isRegionModalOpen, setIsRegionModalOpen] = useState(false);
 
-    // ----------------------------
-    // REGION MODAL AÇ
-    // ----------------------------
     const openRegionModal = () => {
         setTempSelectedItems([...selectedRegionItems]);
         setIsRegionModalOpen(true);
     };
 
-    // ----------------------------
-    // MODAL → YEKUN SEÇİMLƏRİN SAXLANMASI
-    // ----------------------------
     const saveRegionChanges = (rawSelected: string[]) => {
-        setSelectedRegionItems(rawSelected); // əsas filter state
-        setTempSelectedItems(rawSelected);   // modal açılanda eyni olsun
+        setSelectedRegionItems(rawSelected);
+        setTempSelectedItems(rawSelected);
         setIsRegionModalOpen(false);
     };
 
-    // ----------------------------
-    // RESET BÜTÜN FİLTERLƏR
-    // ----------------------------
     const resetFilters = () => {
-        setType("Yeni tikili");
-        setMode("satish");
+        setMode(DEFAULT_MODE);
+        setType(DEFAULT_TYPE);
         setRooms([]);
         setRentTypes([]);
-
         setFloorPosition({
             firstNot: false,
             topNot: false,
-            onlyTop: false
+            onlyTop: false,
         });
-
         setSelectedRegion("Bakı");
         setSelectedRegionItems([]);
         setTempSelectedItems([]);
         setIsRegionModalOpen(false);
     };
 
-    const resultCount = 245;
+    const resultCount = 245; // TODO: backend inteqrasiyası zamanı dinamik edilə bilər
 
-    // ----------------------------
-    // NƏTİCƏLƏRİ GÖSTƏR
-    // ----------------------------
     const handleShowResults = () => {
         const query = buildSearchQuery({
             mode,
@@ -111,9 +92,7 @@ export default function FilterContainer() {
         router.push(`/elanlar?${query}`);
     };
 
-    // ----------------------------
-    // HANSİ FİLTER BLoku göstərilsin?
-    // ----------------------------
+    // Hansı filter bloku göstərilsin?
     const isNewOrOld = type === "Yeni tikili" || type === "Köhnə tikili";
     const isLandHouse = ["Həyət evi", "Villa", "Bağ evi"].includes(type);
     const isOffice = type === "Ofis";
@@ -124,10 +103,10 @@ export default function FilterContainer() {
 
     return (
         <div className="p-5 bg-white rounded border w-full max-w-5xl mx-auto space-y-4">
-
             {/* SATIŞ / İCARƏ */}
             <div className="flex gap-2">
                 <button
+                    type="button"
                     onClick={() => setMode("satish")}
                     className={`px-6 py-2 rounded-md border font-semibold text-sm ${
                         mode === "satish"
@@ -138,6 +117,7 @@ export default function FilterContainer() {
                     SATIŞ
                 </button>
                 <button
+                    type="button"
                     onClick={() => setMode("icare")}
                     className={`px-6 py-2 rounded-md border font-semibold text-sm ${
                         mode === "icare"
@@ -270,6 +250,7 @@ export default function FilterContainer() {
             {/* ALT PANEL */}
             <div className="flex justify-between pt-4 border-t mt-4">
                 <button
+                    type="button"
                     onClick={resetFilters}
                     className="px-4 py-2 border rounded-md text-sm text-gray-800"
                 >
@@ -277,6 +258,7 @@ export default function FilterContainer() {
                 </button>
 
                 <button
+                    type="button"
                     onClick={handleShowResults}
                     className="px-6 py-2 bg-blue-600 text-white rounded-md text-sm font-semibold"
                 >

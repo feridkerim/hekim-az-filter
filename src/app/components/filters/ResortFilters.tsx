@@ -2,9 +2,11 @@
 
 import React from "react";
 import RegionSelect from "../region/RegionSelect";
+import { NumberRangeField } from "./common/NumberRangeField";
 
 interface Props {
     mode: "satish" | "icare";
+
     selectedRegion: string;
     setSelectedRegion: (v: string) => void;
 
@@ -25,38 +27,20 @@ export default function ResortFilters({
                                           setSelectedRegionItems,
                                           tempSelectedItems,
                                           setTempSelectedItems,
-                                          openModal
+                                          openModal,
                                       }: Props) {
     return (
         <div className="grid grid-cols-2 gap-6 mt-6">
-
             {/* SOL BLOK */}
             <div className="space-y-5">
-
                 {/* Qiymət */}
-                <div>
-                    <label className="text-[12px] text-gray-600 font-semibold">
-                        Qiymət (AZN)
-                    </label>
-
-                    <div className="flex gap-2 mt-1">
-                        <input
-                            className="border p-2 rounded-md w-28"
-                            placeholder="min"
-                        />
-                        <input
-                            className="border p-2 rounded-md w-28"
-                            placeholder="max"
-                        />
-                    </div>
-                </div>
+                <NumberRangeField label="Qiymət (AZN)" />
 
                 {/* Əlavə tikilinin növü */}
                 <div>
                     <label className="text-[12px] text-gray-600 font-semibold">
                         Əlavə tikilinin növü
                     </label>
-
                     <select className="border p-2 rounded-md w-full text-sm">
                         <option>Otel</option>
                         <option>Sanatoriya</option>
@@ -70,7 +54,6 @@ export default function ResortFilters({
                     <label className="text-[12px] text-gray-600 font-semibold">
                         Təmir səviyyəsi
                     </label>
-
                     <select className="border p-2 rounded-md w-full text-sm">
                         <option>Təmirli</option>
                         <option>Təmirsiz</option>
@@ -79,29 +62,16 @@ export default function ResortFilters({
 
                 {/* Kreditlə satış (yalnız satışda) */}
                 {mode === "satish" && (
-                    <div>
-                        <label className="text-[12px] text-gray-600 font-semibold">
-                            Kreditlə satış
-                        </label>
-
-                        <div className="flex gap-2 mt-1">
-                            <input
-                                className="border p-2 rounded-md w-28"
-                                placeholder="İlkin ödəniş"
-                            />
-                            <input
-                                className="border p-2 rounded-md w-28"
-                                placeholder="Aylıq ödəniş"
-                            />
-                        </div>
-                    </div>
+                    <NumberRangeField
+                        label="Kreditlə satış"
+                        minPlaceholder="İlkin ödəniş"
+                        maxPlaceholder="Aylıq ödəniş"
+                    />
                 )}
-
             </div>
 
             {/* SAĞ BLOK */}
             <div className="space-y-5">
-
                 {/* Çıxarış / İpoteka */}
                 <div className="flex gap-6 text-sm mt-2">
                     <label className="flex items-center gap-2">
@@ -121,14 +91,9 @@ export default function ResortFilters({
                     setSelectedRegion={setSelectedRegion}
                     selectedItems={selectedRegionItems}
                     setSelectedItems={setSelectedRegionItems}
-                    tempItems={tempSelectedItems}
-                    setTempItems={setTempSelectedItems}
                     openModal={openModal}
                 />
-
-
             </div>
-
         </div>
     );
 }

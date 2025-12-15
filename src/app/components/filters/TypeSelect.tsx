@@ -1,8 +1,13 @@
 "use client";
 
 import React from "react";
+import Box from "@mui/material/Box";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import FormControl from "@mui/material/FormControl";
+import Select from "@mui/material/Select";
 
-const TYPES = [
+const PROPERTY_TYPES = [
     "Yeni tikili",
     "Köhnə tikili",
     "Həyət evi",
@@ -13,7 +18,7 @@ const TYPES = [
     "Torpaq",
     "Obyekt",
     "İstirahət mərkəzləri",
-];
+] as const;
 
 interface TypeSelectProps {
     value: string;
@@ -22,16 +27,22 @@ interface TypeSelectProps {
 
 export default function TypeSelect({ value, onChange }: TypeSelectProps) {
     return (
-        <select
-            className="border p-2 rounded-md w-full text-sm"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-        >
-            {TYPES.map((t) => (
-                <option key={t} value={t}>
-                    {t}
-                </option>
-            ))}
-        </select>
+        <FormControl fullWidth>
+            <InputLabel id="property-type-label">Tikilinin növü</InputLabel>
+
+            <Select
+                labelId="property-type-label"
+                id="property-type"
+                label="Tikilinin növü"
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+            >
+                {PROPERTY_TYPES.map((type) => (
+                    <MenuItem key={type} value={type}>
+                        {type}
+                    </MenuItem>
+                ))}
+            </Select>
+        </FormControl>
     );
 }
